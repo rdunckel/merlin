@@ -12,6 +12,8 @@
     <string name="context_2">Context Option 2</string>
     <string name="title_activity_movie_detail">MovieDetailActivity</string>
     <string name="hello_world">Hello world!</string>
-    <string name="ok_button_label">Ok</string>
+    <string name="ok_button_label">OK</string>
+    <string name="poster_content_desc">Poster image for the movie.</string>
+    <string name="ratings_label_text">Ratings</string>
 
 </resources>

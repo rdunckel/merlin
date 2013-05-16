@@ -23,7 +23,7 @@ import android.widget.Spinner;
 public class MainActivity extends Activity {
 
 	public enum IntentKeys {
-		MOVIE_TYPE_KEY, PREFERRED_PROVIDER_KEY, MOVIE_TITLE_KEY, MOVIE_RATING_KEY, MOVIE_KEY
+		MOVIE_TYPE_KEY, PREFERRED_PROVIDER_KEY, MOVIE_TITLE_KEY, MOVIE_RATING_KEY, MOVIE_KEY, STATE_BUNDLE_KEY
 	}
 
 	public enum MovieType {

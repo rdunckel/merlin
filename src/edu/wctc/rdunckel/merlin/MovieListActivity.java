@@ -1,5 +1,6 @@
 package edu.wctc.rdunckel.merlin;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,7 +13,6 @@ import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -20,11 +20,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 import edu.wctc.rdunckel.merlin.MainActivity.IntentKeys;
 import edu.wctc.rdunckel.merlin.MainActivity.MovieType;
@@ -38,46 +36,51 @@ import edu.wctc.rdunckel.merlin.service.MovieListServiceFactory;
 
 public class MovieListActivity extends ListActivity {
 
+	private static final String MOVIE_LIST = "MovieList";
 	private MovieListService movieService;
 	private MovieType movieTypeSelection;
 	private Movie[] moviesArray;
 	private SharedPreferences userPrefs;
 	private Editor userPrefsEditor;
 	private MovieArrayAdapter movieAdapter;
+	private List<Movie> movies;
+	private Bundle stateBundle;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		userPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		userPrefsEditor = userPrefs.edit();
+		super.onCreate(savedInstanceState); // Always call the superclass first
 
 		Intent intent = getIntent();
 		movieTypeSelection = MovieType.valueOf(intent
 				.getStringExtra(IntentKeys.MOVIE_TYPE_KEY.name()));
 
-		movieService = MovieListServiceFactory.INSTANCE
-				.getMovieListService(movieTypeSelection);
+		stateBundle = (savedInstanceState != null) ? savedInstanceState
+				: intent.getExtras();
 
-		List<Movie> movies = movieService.getMovies();
+		userPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		userPrefsEditor = userPrefs.edit();
 
-		MovieListService imdbService = new ImdbMovieService();
-
-		for (Movie movie : movies) {
-			String imdbId = movie.getImdbId();
-			Rating imdbRating = imdbService.getRatingForMovie(imdbId);
-			movie.addRating(imdbRating);
+		// Check whether we're recreating a previously destroyed instance
+		if (stateBundle != null) {
+			movies = (List<Movie>) stateBundle.getSerializable(MOVIE_LIST);
 		}
 
-		// setListAdapter(new ArrayAdapter<Movie>(this,
-		// R.layout.activity_movie_list, movies));
+		if (movies == null) {
 
-		// setListAdapter(new ArrayAdapter<Movie>(this,
-		// android.R.layout.simple_expandable_list_item_2,
-		// android.R.id.text1, movies));
+			movieService = MovieListServiceFactory.INSTANCE
+					.getMovieListService(movieTypeSelection);
 
-		// ListView listView = getListView();
-		// listView.setTextFilterEnabled(true);
+			movies = movieService.getMovies();
+
+			MovieListService imdbService = new ImdbMovieService();
+
+			for (Movie movie : movies) {
+				String imdbId = movie.getImdbId();
+				Rating imdbRating = imdbService.getRatingForMovie(imdbId);
+				movie.addRating(imdbRating);
+			}
+		}
 
 		ListView listView = getListView();
 		moviesArray = movies.toArray(new Movie[movies.size()]);
@@ -88,16 +91,12 @@ public class MovieListActivity extends ListActivity {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
-				TextView lineOne = (TextView) view
-						.findViewById(android.R.id.text1);
+				Movie selectedMovie = moviesArray[position];
 
-				// When clicked, show a toast with the TextView text
-				Toast.makeText(getApplicationContext(), lineOne.getText(),
-						Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(),
+						selectedMovie.getSynopsis(), Toast.LENGTH_SHORT).show();
 			}
 		});
-
-		// registerForContextMenu(listView);
 
 		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
@@ -121,9 +120,19 @@ public class MovieListActivity extends ListActivity {
 	}
 
 	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+
+		// Save the user's current game state
+		outState.putSerializable(MOVIE_LIST, (Serializable) movies);
+
+		// Always call the superclass so it can save the view hierarchy state
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.movie_list, menu);
 		return true;
 	}
 
@@ -141,24 +150,6 @@ public class MovieListActivity extends ListActivity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.context_1:
-			// AlertDialog.Builder dialogBuilder = new
-			// AlertDialog.Builder(this);
-			// dialogBuilder
-			// .setTitle("Preferred Ratings Provider")
-			// .setMultiChoiceItems(
-			// new CharSequence[] {
-			// RatingProvider.ROTTEN_TOMATOES.name(),
-			// RatingProvider.IMDB.name() }, null,
-			// new OnMultiChoiceClickListener() {
-			//
-			// @Override
-			// public void onClick(DialogInterface dialog,
-			// int position, boolean selected) {
-			// Log.d("Test", "Test");
-			// }
-			//
-			// }).show();
-
 			final CharSequence[] options = new CharSequence[] {
 					RatingProvider.ROTTEN_TOMATOES.name(),
 					RatingProvider.IMDB.name() };
@@ -186,7 +177,10 @@ public class MovieListActivity extends ListActivity {
 													.toString());
 									userPrefsEditor.commit();
 
-									// movieAdapter.notifyDataSetChanged();
+									stateBundle.putSerializable(MOVIE_LIST,
+											(Serializable) movies);
+									getIntent().putExtras(stateBundle);
+
 									startActivity(getIntent());
 								}
 							}).show();
@@ -202,23 +196,6 @@ public class MovieListActivity extends ListActivity {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.movie_list, menu);
-	}
-
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		@SuppressWarnings("unused")
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
-				.getMenuInfo();
-		switch (item.getItemId()) {
-		case R.id.context_1:
-			Log.d("MenuSelection", String.valueOf(item.getItemId()));
-			return true;
-		case R.id.context_2:
-			Log.d("MenuSelection", String.valueOf(item.getItemId()));
-			return true;
-		default:
-			return super.onContextItemSelected(item);
-		}
 	}
 
 }

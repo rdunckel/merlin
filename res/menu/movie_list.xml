@@ -5,10 +5,5 @@
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/context_1"/>
-    <item
-        android:id="@+id/context_2"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/context_2"/>
 
 </menu>

@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_toRightOf="@+id/titleText"
-                android:contentDescription="Poster image for the movie." />
+                android:contentDescription="@string/poster_content_desc" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -65,7 +65,7 @@
                 android:layout_below="@+id/synopsisText"
                 android:layout_marginTop="40dp"
                 android:ems="10"
-                android:text="Ratings"
+                android:text="@string/ratings_label_text"
                 android:textIsSelectable="true" />
 
             <TableLayout

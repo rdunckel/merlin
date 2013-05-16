@@ -25,10 +25,9 @@ public final class R {
         public static final int ic_launcher=0x7f020001;
     }
     public static final class id {
-        public static final int action_settings=0x7f08000d;
+        public static final int action_settings=0x7f08000b;
         public static final int bottomFrame=0x7f080007;
-        public static final int context_1=0x7f08000b;
-        public static final int context_2=0x7f08000c;
+        public static final int context_1=0x7f08000c;
         public static final int go=0x7f080003;
         public static final int imageView1=0x7f080000;
         public static final int moviePoster=0x7f080006;
@@ -61,6 +60,8 @@ public final class R {
         public static final int label_in_theaters=0x7f050003;
         public static final int label_on_dvd=0x7f050004;
         public static final int ok_button_label=0x7f05000b;
+        public static final int poster_content_desc=0x7f05000c;
+        public static final int ratings_label_text=0x7f05000d;
         public static final int title_activity_movie_detail=0x7f050009;
         public static final int title_activity_movie_list=0x7f050006;
     }
